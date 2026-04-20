@@ -1,29 +1,26 @@
 const transactionService = require("../services/transactionService");
 
-// Create transaction
-exports.createTransaction = (req, res) => {
+// CREATE
+exports.createTransaction = async (req, res) => {
   try {
-    const data = req.body;
-
-    const newTransaction = transactionService.createTransaction(data);
+    const newTransaction = await transactionService.createTransaction(req.body);
 
     res.status(201).json({
       success: true,
-      message: "Transaction created",
       data: newTransaction,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error creating transaction",
+      message: error.message,
     });
   }
 };
 
-// Get all transactions
-exports.getTransactions = (req, res) => {
+// GET
+exports.getTransactions = async (req, res) => {
   try {
-    const transactions = transactionService.getTransactions();
+    const transactions = await transactionService.getTransactions();
 
     res.json({
       success: true,
@@ -32,7 +29,7 @@ exports.getTransactions = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching transactions",
+      message: error.message,
     });
   }
 };

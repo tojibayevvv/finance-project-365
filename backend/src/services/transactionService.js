@@ -1,24 +1,46 @@
-let transactions = [];
+const supabase = require("../db/supabase");
 
-// Create transaction
-function createTransaction(data) {
-  const newTransaction = {
-    id: Date.now(),
-    amount: data.amount,
-    type: data.type,
-    category: data.category,
-    date: data.date || new Date(),
-    note: data.note || "",
-  };
+console.log("USING SUPABASE SERVICE");
 
-  transactions.push(newTransaction);
+// CREATE TRANSACTION
+async function createTransaction(data) {
+  const { amount, type, category, note } = data;
 
-  return newTransaction;
+  const { data: result, error } = await supabase
+    .from("transactions")
+    .insert([
+      {
+        amount,
+        type,
+        category,
+        note,
+      },
+    ])
+    .select();
+
+  if (error) {
+    console.error("Supabase insert error:", error);
+    throw error;
+  }
+
+  console.log("Inserted into DB:", result);
+
+  return result[0];
 }
 
-// Get all transactions
-function getTransactions() {
-  return transactions;
+// GET TRANSACTIONS
+async function getTransactions() {
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Supabase fetch error:", error);
+    throw error;
+  }
+
+  return data;
 }
 
 module.exports = {
