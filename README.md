@@ -39,5 +39,4 @@ This project is built for small and medium businesses in Uzbekistan to manage th
 
 ### 1. Clone repo
 ```bash
-git clone <your-repo-link>
-cd project
+git clone https://github.com/tojibayevvv/finance-project-365
