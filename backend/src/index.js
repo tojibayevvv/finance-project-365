@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const app = require("./app");
+require("./bot/telegramBot");
 
 const PORT = process.env.PORT || 3000;
 
