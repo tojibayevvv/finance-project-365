@@ -212,115 +212,146 @@ const BalanceBadge = styled.span`
 // --- Main Component ---
 
 function Overview() {
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [amount, setAmount] = useState("");
-  const [type, setType] = useState("expense");
-  const [category, setCategory] = useState("");
-  const [note, setNote] = useState("");
+    const [transactions, setTransactions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [amount, setAmount] = useState("");
+    const [type, setType] = useState("expense");
+    const [category, setCategory] = useState("");
+    const [note, setNote] = useState("");
 
-  useEffect(() => {
-    let mounted = true;
-    setLoading(true);
-    api.get("/transactions")
-      .then(res => { if (mounted) setTransactions(res.data.data); })
-      .catch(err => console.error(err))
-      .finally(() => mounted && setLoading(false));
-    return () => { mounted = false; };
-  }, []);
+    useEffect(() => {
+        let mounted = true;
+        setLoading(true);
 
-  const handleAdd = async () => {
-    setLoading(true);
-    try {
-      await api.post("/transactions", { amount: Number(amount), type, category, note });
-      setAmount(""); setCategory(""); setNote("");
-      const res = await api.get("/transactions");
-      setTransactions(res.data.data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+        api.get("/transactions")
+            .then(res => {
+                console.log("FETCH:", res.data);
+
+                const data = res?.data?.data || res?.data || [];
+
+                if (mounted) setTransactions(Array.isArray(data) ? data : []);
+            })
+            .catch(err => {
+                console.error("FETCH ERROR:", err);
+                if (mounted) setTransactions([]);
+            })
+            .finally(() => {
+                if (mounted) setLoading(false);
+            });
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    const handleAdd = async () => {
+        setLoading(true);
+
+        try {
+            await api.post("/transactions", {
+                amount: Number(amount),
+                type,
+                category,
+                note,
+            });
+
+            setAmount("");
+            setCategory("");
+            setNote("");
+
+            const res = await api.get("/transactions");
+
+            const data = res?.data?.data || res?.data || [];
+
+            setTransactions(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("ADD ERROR:", error);
+            setTransactions([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const safeTransactions = transactions || [];
+
+    const income = safeTransactions
+        .filter(t => t.type === "income")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    const expense = safeTransactions
+        .filter(t => t.type === "expense")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    if (loading) {
+        return (
+            <FullLoader>
+                <Spinner aria-label="Loading" />
+                <p>Loading...</p>
+            </FullLoader>
+        );
     }
-  };
 
-  const income = transactions
-    .filter(t => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const expense = transactions
-    .filter(t => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  if (loading) {
     return (
-      <FullLoader>
-        <Spinner aria-label="Loading" />
-        <p>Loading...</p>
-      </FullLoader>
+        <div>
+            <h1 style={{ marginBottom: '2rem', color: '#1e293b' }}>Financial Overview</h1>
+
+            <DashboardLayout>
+                {/* LEFT — Visa card + net balance */}
+                <NetBalanceCard income={income} expense={expense} />
+
+                {/* RIGHT — income & expense stacked */}
+                <RightColumn>
+                    <Card>
+                        <div>
+                            <Naming>Total Income</Naming>
+                            <Description className="numeric" style={{ color: '#16a34a' }}>
+                                +{income.toLocaleString()} UZS
+                            </Description>
+                        </div>
+                        <IconWrap style={{ color: '#16a34a' }}>
+                            <ProgressIcon />
+                        </IconWrap>
+                    </Card>
+
+                    <Card>
+                        <div>
+                            <Naming>Total Expenses</Naming>
+                            <Description className="numeric" style={{ color: '#dc2626' }}>
+                                −{expense.toLocaleString()} UZS
+                            </Description>
+                        </div>
+                        <IconWrap style={{ color: '#dc2626' }}>
+                            <DownGradeIcon />
+                        </IconWrap>
+                    </Card>
+                </RightColumn>
+            </DashboardLayout>
+
+            <h3 style={{ marginBottom: '1.5rem' }}>Quick Add Transaction</h3>
+
+            <Form>
+                <input type="number" placeholder="Amount" value={amount}
+                    onChange={e => setAmount(e.target.value)} style={{ flex: '1', minWidth: '120px' }} />
+                <select value={type} onChange={e => setType(e.target.value)} style={{ minWidth: '120px' }}>
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                </select>
+                <select value={category} onChange={e => setCategory(e.target.value)} style={{ minWidth: '140px' }}>
+                    <option value="">Select Category</option>
+                    <option value="sales">Sales</option>
+                    <option value="food">Food</option>
+                    <option value="transport">Transport</option>
+                    <option value="rent">Rent</option>
+                    <option value="salary">Salary</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="logistics">Logistics</option>
+                </select>
+                <input type="text" placeholder="Note (optional)" value={note}
+                    onChange={e => setNote(e.target.value)} style={{ flex: '2', minWidth: '200px' }} />
+                <Button onClick={handleAdd}>Add Transaction</Button>
+            </Form>
+        </div>
     );
-  }
-
-  return (
-    <div>
-      <h1 style={{ marginBottom: '2rem', color: '#1e293b' }}>Financial Overview</h1>
-
-      <DashboardLayout>
-        {/* LEFT — Visa card + net balance */}
-        <NetBalanceCard income={income} expense={expense} />
-
-        {/* RIGHT — income & expense stacked */}
-        <RightColumn>
-          <Card>
-            <div>
-              <Naming>Total Income</Naming>
-              <Description className="numeric" style={{ color: '#16a34a' }}>
-                +{income.toLocaleString()} UZS
-              </Description>
-            </div>
-            <IconWrap style={{ color: '#16a34a' }}>
-              <ProgressIcon />
-            </IconWrap>
-          </Card>
-
-          <Card>
-            <div>
-              <Naming>Total Expenses</Naming>
-              <Description className="numeric" style={{ color: '#dc2626' }}>
-                −{expense.toLocaleString()} UZS
-              </Description>
-            </div>
-            <IconWrap style={{ color: '#dc2626' }}>
-              <DownGradeIcon />
-            </IconWrap>
-          </Card>
-        </RightColumn>
-      </DashboardLayout>
-
-      <h3 style={{ marginBottom: '1.5rem' }}>Quick Add Transaction</h3>
-
-      <Form>
-        <input type="number" placeholder="Amount" value={amount}
-          onChange={e => setAmount(e.target.value)} style={{ flex: '1', minWidth: '120px' }} />
-        <select value={type} onChange={e => setType(e.target.value)} style={{ minWidth: '120px' }}>
-          <option value="expense">Expense</option>
-          <option value="income">Income</option>
-        </select>
-        <select value={category} onChange={e => setCategory(e.target.value)} style={{ minWidth: '140px' }}>
-          <option value="">Select Category</option>
-          <option value="sales">Sales</option>
-          <option value="food">Food</option>
-          <option value="transport">Transport</option>
-          <option value="rent">Rent</option>
-          <option value="salary">Salary</option>
-          <option value="marketing">Marketing</option>
-          <option value="logistics">Logistics</option>
-        </select>
-        <input type="text" placeholder="Note (optional)" value={note}
-          onChange={e => setNote(e.target.value)} style={{ flex: '2', minWidth: '200px' }} />
-        <Button onClick={handleAdd}>Add Transaction</Button>
-      </Form>
-    </div>
-  );
 }
 
 export default Overview;
@@ -328,31 +359,33 @@ export default Overview;
 // --- NetBalanceCard ---
 
 function NetBalanceCard({ income, expense }) {
-  const net = income - expense;
-  const isPositive = net >= 0;
+    const net = income - expense;
+    const isPositive = net >= 0;
 
-  return (
-    <div>
-      <VisaCardOuter>
-        <CardChip />
-        <CardNumber>•••• •••• •••• 4821</CardNumber>
-        <CardName>DATA 365</CardName>
-        <CardExpiry>09/28</CardExpiry>
-        <VisaLogo>VISA</VisaLogo>
-      </VisaCardOuter>
-
-      <BalanceRow>
+    return (
         <div>
-          <p style={{ fontSize: 12, color: '#6b7280', margin: '0 0 4px' }}>Net Balance</p>
-          <p className="numeric" style={{ fontSize: 18, fontWeight: 700, margin: 0,
-            color: isPositive ? '#16a34a' : '#dc2626' }}>
-            {isPositive ? '+' : ''}{net.toLocaleString()} UZS
-          </p>
+            <VisaCardOuter>
+                <CardChip />
+                <CardNumber>•••• •••• •••• 4821</CardNumber>
+                <CardName>DATA 365</CardName>
+                <CardExpiry>09/28</CardExpiry>
+                <VisaLogo>VISA</VisaLogo>
+            </VisaCardOuter>
+
+            <BalanceRow>
+                <div>
+                    <p style={{ fontSize: 12, color: '#6b7280', margin: '0 0 4px' }}>Net Balance</p>
+                    <p className="numeric" style={{
+                        fontSize: 18, fontWeight: 700, margin: 0,
+                        color: isPositive ? '#16a34a' : '#dc2626'
+                    }}>
+                        {isPositive ? '+' : ''}{net.toLocaleString()} UZS
+                    </p>
+                </div>
+                <BalanceBadge $positive={isPositive}>
+                    {isPositive ? 'Surplus' : 'Deficit'}
+                </BalanceBadge>
+            </BalanceRow>
         </div>
-        <BalanceBadge $positive={isPositive}>
-          {isPositive ? 'Surplus' : 'Deficit'}
-        </BalanceBadge>
-      </BalanceRow>
-    </div>
-  );
+    );
 }
