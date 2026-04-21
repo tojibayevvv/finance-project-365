@@ -157,6 +157,7 @@ const CardNumber = styled.div`
   font-size: 16px;
   letter-spacing: 2.5px;
   color: rgba(255,255,255,0.8);
+  font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
 `;
 
 const CardName = styled.div`
@@ -272,7 +273,7 @@ function Overview() {
           <Card>
             <div>
               <Naming>Total Income</Naming>
-              <Description style={{ color: '#16a34a' }}>
+              <Description className="numeric" style={{ color: '#16a34a' }}>
                 +{income.toLocaleString()} UZS
               </Description>
             </div>
@@ -284,7 +285,7 @@ function Overview() {
           <Card>
             <div>
               <Naming>Total Expenses</Naming>
-              <Description style={{ color: '#dc2626' }}>
+              <Description className="numeric" style={{ color: '#dc2626' }}>
                 −{expense.toLocaleString()} UZS
               </Description>
             </div>
@@ -343,10 +344,8 @@ function NetBalanceCard({ income, expense }) {
       <BalanceRow>
         <div>
           <p style={{ fontSize: 12, color: '#6b7280', margin: '0 0 4px' }}>Net Balance</p>
-          <p style={{
-            fontFamily: 'monospace', fontSize: 18, fontWeight: 700, margin: 0,
-            color: isPositive ? '#16a34a' : '#dc2626'
-          }}>
+          <p className="numeric" style={{ fontSize: 18, fontWeight: 700, margin: 0,
+            color: isPositive ? '#16a34a' : '#dc2626' }}>
             {isPositive ? '+' : ''}{net.toLocaleString()} UZS
           </p>
         </div>

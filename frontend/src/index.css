@@ -11,6 +11,13 @@ body {
   background-color: #f8fafc;
 }
 
+/* Use Roboto for numeric values for consistent number glyphs */
+.numeric,
+.amount {
+  font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
 h1, h2, h3, h4, h5, h6 {
   margin-bottom: 0.5rem;
   font-weight: 600;
