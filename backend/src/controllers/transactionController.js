@@ -33,3 +33,22 @@ exports.getTransactions = async (req, res) => {
     });
   }
 };
+
+//DELETE
+exports.deleteTransaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await transactionService.deleteTransaction(id);
+
+    res.json({
+      success: true,
+      message: "Transaction deleted",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

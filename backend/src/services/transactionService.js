@@ -187,6 +187,18 @@ async function getTodayVsYesterdayExpenses() {
   return { today, yesterday };
 }
 
+async function deleteTransaction(id) {
+  const { error } = await supabase
+    .from("transactions")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Delete error:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   createTransaction,
   getTransactions,
@@ -194,4 +206,5 @@ module.exports = {
   getTotalIncome,
   getTotalsByRange,
   getTodayVsYesterdayExpenses,
+  deleteTransaction,
 };
