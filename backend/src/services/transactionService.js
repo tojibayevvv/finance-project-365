@@ -188,15 +188,25 @@ async function getTodayVsYesterdayExpenses() {
 }
 
 async function deleteTransaction(id) {
-  const { error } = await supabase
-    .from("transactions")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("transactions").delete().eq("id", id);
 
   if (error) {
     console.error("Delete error:", error);
     throw error;
   }
+}
+
+async function updateTransaction(id, data) {
+  const { data: updated, error } = await supabase
+    .from("transactions")
+    .update(data)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return updated;
 }
 
 module.exports = {
@@ -207,4 +217,5 @@ module.exports = {
   getTotalsByRange,
   getTodayVsYesterdayExpenses,
   deleteTransaction,
+  updateTransaction,
 };

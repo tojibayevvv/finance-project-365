@@ -52,3 +52,22 @@ exports.deleteTransaction = async (req, res) => {
     });
   }
 };
+
+
+//PUT 
+exports.updateTransaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updated = await transactionService.updateTransaction(id, req.body);
+
+    res.json({
+      success: true,
+      data: updated,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
